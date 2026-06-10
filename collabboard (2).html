@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CollabBoard — Status Report</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --border: #e8e8e8;
+  --border2: #d0d0d0;
+  --text: #1a1a1a;
+  --text2: #555;
+  --text3: #999;
+  --primary: #7c4dff;
+  --primary-light: #ede7ff;
+  --radius: 10px;
+  --card-w: 220px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.10);
+  --shadow-lg: 0 6px 24px rgba(0,0,0,0.14);
+  --t: 0.15s ease;
+}
+[data-dark] {
+  --bg: #141414;
+  --surface: #1f1f1f;
+  --border: #2e2e2e;
+  --border2: #3a3a3a;
+  --text: #f0f0f0;
+  --text2: #aaa;
+  --text3: #666;
+  --primary: #9c6fff;
+  --primary-light: #2a2040;
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 6px 24px rgba(0,0,0,0.5);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background .2s, color .2s; }
+
+/* ── TOP NAV ── */
+.topnav {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 20px; height: 48px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; color: var(--primary); letter-spacing: -0.5px; }
+.nav-logo-icon { width: 28px; height: 28px; background: var(--primary); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }
+.nav-board-title { font-size: 15px; font-weight: 700; color: var(--text); margin-left: 4px; }
+.nav-sub { font-size: 12px; color: var(--text3); margin-left: 4px; }
+.nav-spacer { flex: 1; }
+.nav-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); transition: all var(--t); font-family: inherit; }
+.nav-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.nav-btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.nav-btn-primary:hover { background: #6030ee; }
+.nav-icon-btn { width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); font-size: 15px; transition: all var(--t); }
+.nav-icon-btn:hover { background: var(--bg); color: var(--text); }
+.presence { display: flex; }
+.pav { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--surface); font-size: 9px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; margin-left: -6px; cursor: default; }
+.pav:first-child { margin-left: 0; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: blink 1.6s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── BOARD HEADER ── */
+.board-header {
+  padding: 22px 24px 8px;
+}
+.board-title-row { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 4px; }
+.board-title { font-size: 26px; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
+.board-meta { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 14px; }
+.board-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* ── BOARD BODY ── */
+.board-body { padding: 0 0 40px; }
+
+/* ── SECTION ── */
+.section-wrap { margin-bottom: 0; border-top: 1px solid var(--border); }
+.section-wrap:first-child { border-top: none; }
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px 10px;
+  position: sticky; left: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+.section-title {
+  font-size: 14px; font-weight: 800; color: var(--text);
+  letter-spacing: 0.1px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-count {
+  font-size: 11px; font-weight: 600; color: var(--text3);
+  background: var(--border); border-radius: 20px; padding: 1px 7px;
+}
+.section-actions { display: flex; gap: 4px; margin-left: 4px; opacity: 0; transition: opacity var(--t); }
+.section-wrap:hover .section-actions { opacity: 1; }
+.sec-icon-btn { width: 24px; height: 24px; border-radius: 5px; border: none; background: transparent; cursor: pointer; color: var(--text3); font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all var(--t); }
+.sec-icon-btn:hover { background: var(--border); color: var(--text); }
+.section-spacer { flex: 1; }
+.sec-add-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px; border: 1px dashed var(--border2);
+  background: transparent; color: var(--text3); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all var(--t); font-family: inherit;
+}
+.sec-add-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+/* ── CARD SCROLL ROW ── */
+.card-row {
+  display: flex; gap: 12px;
+  padding: 4px 20px 18px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.card-row::-webkit-scrollbar { height: 5px; }
+.card-row::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── CARD ── */
+.card {
+  flex-shrink: 0;
+  width: var(--card-w);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform var(--t), box-shadow var(--t);
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.card-media {
+  width: 100%; height: 138px;
+  background: #e8e8e8;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+[data-dark] .card-media { background: #2a2a2a; }
+.card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-media-placeholder { font-size: 36px; color: #ccc; }
+[data-dark] .card-media-placeholder { color: #444; }
+.card-media-icon {
+  position: absolute; bottom: 7px; left: 7px;
+  background: rgba(0,0,0,0.55); color: #fff;
+  border-radius: 5px; padding: 2px 7px;
+  font-size: 10px; display: flex; align-items: center; gap: 4px; font-weight: 600;
+}
+.card-media-pdf {
+  position: absolute; top: 7px; left: 7px;
+  background: #e53935; color: #fff;
+  border-radius: 4px; padding: 2px 6px;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+}
+.card-body { padding: 10px 10px 8px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.card-author-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.card-avatar { width: 20px; height: 20px; border-radius: 50%; font-size: 8px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.card-author-name { font-size: 11px; color: var(--text2); font-weight: 600; }
+.card-author-time { font-size: 10px; color: var(--text3); margin-left: auto; }
+.card-title { font-size: 12.5px; font-weight: 700; color: var(--text); line-height: 1.35; }
+.card-desc { font-size: 11.5px; color: var(--text2); line-height: 1.45; margin-top: 2px; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.card-tag { font-size: 10px; background: var(--bg); color: var(--text3); border-radius: 4px; padding: 1px 6px; border: 1px solid var(--border); }
+.card-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 10px 8px; margin-top: auto; }
+.card-footer-left { display: flex; align-items: center; gap: 10px; }
+.card-stat { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--text3); cursor: pointer; transition: color var(--t); }
+.card-stat:hover { color: var(--primary); }
+.card-stat i { font-size: 13px; }
+.card-menu { width: 22px; height: 22px; border-radius: 4px; background: transparent; border: none; cursor: pointer; color: var(--text3); font-size: 13px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all var(--t); }
+.card:hover .card-menu { opacity: 1; }
+.card-menu:hover { background: var(--bg); color: var(--text); }
+
+/* ── ADD CARD ── */
+.card-add {
+  flex-shrink: 0; width: var(--card-w);
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: var(--text3); font-size: 12px; font-weight: 600;
+  cursor: pointer; min-height: 100px;
+  transition: all var(--t);
+  scroll-snap-align: start;
+}
+.card-add i { font-size: 20px; }
+.card-add:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+/* ── ADD SECTION ROW ── */
+.add-section-row {
+  padding: 14px 20px;
+  display: flex; align-items: center;
+}
+.add-section-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 7px;
+  border: 1.5px dashed var(--border2);
+  background: transparent; color: var(--text3); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all var(--t); font-family: inherit;
+}
+.add-section-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+/* ── MODAL ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .18s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--surface); border-radius: 14px; padding: 26px; width: 480px; max-width: 96vw; max-height: 88vh; overflow-y: auto; transform: translateY(12px) scale(.97); transition: transform .18s; box-shadow: var(--shadow-lg); }
+.overlay.open .modal { transform: none; }
+.mh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.mh-title { font-size: 18px; font-weight: 800; color: var(--text); }
+.mh-close { width: 30px; height: 30px; border-radius: 7px; background: var(--bg); border: none; cursor: pointer; color: var(--text3); font-size: 15px; display: flex; align-items: center; justify-content: center; }
+.mh-close:hover { background: var(--border); }
+.fg { margin-bottom: 14px; }
+.fl { display: block; font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.fi { width: 100%; padding: 9px 11px; border-radius: 7px; border: 1.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 13.5px; outline: none; font-family: inherit; transition: border .15s, box-shadow .15s; }
+.fi:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,77,255,.12); }
+textarea.fi { resize: vertical; min-height: 70px; }
+select.fi { appearance: none; }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+/* Color picker */
+.cpicker { display: flex; gap: 7px; flex-wrap: wrap; }
+.cdot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.cdot:hover, .cdot.on { transform: scale(1.3); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px currentColor; }
+
+/* type picker */
+.tpicker { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; }
+.topt { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 6px; border-radius: 8px; border: 1.5px solid var(--border2); background: var(--bg); cursor: pointer; font-size: 11px; font-weight: 700; color: var(--text2); transition: all .15s; }
+.topt i { font-size: 19px; }
+.topt:hover, .topt.on { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+
+/* rich bar */
+.rbar { display: flex; gap: 2px; padding: 6px 8px; background: var(--bg); border: 1.5px solid var(--border2); border-radius: 7px 7px 0 0; border-bottom: none; }
+.rbtn { width: 26px; height: 26px; border: none; background: transparent; cursor: pointer; color: var(--text2); font-size: 12px; border-radius: 5px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.rbtn:hover { background: var(--border); color: var(--text); }
+.rsep { width: 1px; background: var(--border2); margin: 3px 2px; }
+.reditor { border: 1.5px solid var(--border2); border-top: none; border-radius: 0 0 7px 7px; padding: 10px; min-height: 80px; outline: none; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.6; }
+.reditor:focus { border-color: var(--primary); }
+.reditor:empty:before { content: attr(data-ph); color: var(--text3); }
+
+/* Toast */
+.toast-wrap { position: fixed; bottom: 18px; right: 18px; z-index: 900; display: flex; flex-direction: column; gap: 7px; }
+.toast { background: #1a1a1a; color: #fff; padding: 9px 14px; border-radius: 7px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 7px; box-shadow: var(--shadow-lg); animation: tup .25s ease; }
+[data-dark] .toast { background: #f0f0f0; color: #111; }
+.toast.ok { background: #15803d; }
+@keyframes tup { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* context menu */
+.ctx { position: fixed; background: var(--surface); border: 1px solid var(--border2); border-radius: 9px; padding: 5px; z-index: 800; box-shadow: var(--shadow-lg); min-width: 150px; display: none; }
+.ctx.show { display: block; }
+.ctx-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; font-size: 12.5px; color: var(--text2); cursor: pointer; transition: all .12s; }
+.ctx-item:hover { background: var(--bg); color: var(--text); }
+.ctx-item.danger { color: #dc2626; }
+.ctx-item.danger:hover { background: #fee2e2; }
+.ctx-sep { height: 1px; background: var(--border); margin: 3px 0; }
+
+/* share */
+.share-row { display: flex; gap: 8px; }
+.share-row input { flex: 1; font-family: monospace; }
+.perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.popt { padding: 9px 11px; border-radius: 8px; border: 1.5px solid var(--border2); cursor: pointer; transition: all .15s; }
+.popt.on { border-color: var(--primary); background: var(--primary-light); }
+.popt-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.popt-desc { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+/* ── SEARCH BAR ── */
+.search-bar { position: relative; }
+.search-bar input { padding: 5px 10px 5px 30px; border-radius: 7px; border: 1px solid var(--border2); background: var(--bg); color: var(--text); font-size: 12px; outline: none; width: 180px; font-family: inherit; transition: border .15s, box-shadow .15s; }
+.search-bar input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124,77,255,.12); width: 220px; }
+.search-bar i { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; pointer-events: none; }
+
+@media (max-width: 600px) {
+  :root { --card-w: 180px; }
+  .board-title { font-size: 20px; }
+  .search-bar input { width: 120px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-logo">
+    <div class="nav-logo-icon"><i class="ti ti-layout-board"></i></div>
+    CollabBoard
+  </div>
+  <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+  <div class="nav-board-title" id="navBoardTitle">Status Report — May</div>
+  <div class="nav-spacer"></div>
+  <div class="search-bar">
+    <i class="ti ti-search"></i>
+    <input type="text" placeholder="Search cards…" oninput="handleSearch(this.value)">
+  </div>
+  <div class="presence" id="presenceBar">
+    <div class="pav" style="background:linear-gradient(135deg,#7c4dff,#448aff)" title="You">HM</div>
+    <div class="pav" style="background:linear-gradient(135deg,#f06292,#ce93d8)" title="Sara K.">SK</div>
+    <div class="pav" style="background:linear-gradient(135deg,#26c6da,#00e676)" title="Alex T.">AT</div>
+  </div>
+  <div class="live-dot" title="Live"></div>
+  <button class="nav-icon-btn" onclick="openShareModal()" title="Share"><i class="ti ti-share"></i></button>
+  <button class="nav-icon-btn" onclick="toggleDark()" id="themeBtn" title="Theme"><i class="ti ti-moon"></i></button>
+  <button class="nav-btn nav-btn-primary" onclick="openAddSectionModal()"><i class="ti ti-plus" style="font-size:13px"></i> Add Section</button>
+</nav>
+
+<!-- BOARD -->
+<div class="board-body" id="boardBody">
+  <div class="board-header">
+    <div class="board-title-row">
+      <div class="board-title" id="boardTitle">Status Report — May</div>
+    </div>
+    <div class="board-meta">
+      <span><i class="ti ti-calendar-event"></i> Updated just now</span>
+      <span><i class="ti ti-users"></i> 3 collaborators</span>
+      <span><i class="ti ti-eye"></i> <span id="viewCount">142</span> views</span>
+    </div>
+  </div>
+  <div id="sectionsContainer"></div>
+  <div class="add-section-row">
+    <button class="add-section-btn" onclick="openAddSectionModal()"><i class="ti ti-plus"></i> Add Section</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Context menu -->
+<div class="ctx" id="ctxMenu">
+  <div class="ctx-item" onclick="ctxAction('edit')"><i class="ti ti-edit" style="font-size:14px"></i> Edit card</div>
+  <div class="ctx-item" onclick="ctxAction('dup')"><i class="ti ti-copy" style="font-size:14px"></i> Duplicate</div>
+  <div class="ctx-item" onclick="ctxAction('move')"><i class="ti ti-arrows-move" style="font-size:14px"></i> Move to…</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="ctxAction('del')"><i class="ti ti-trash" style="font-size:14px"></i> Delete</div>
+</div>
+
+<!-- ADD CARD MODAL -->
+<div class="overlay" id="addCardModal">
+  <div class="modal">
+    <div class="mh"><div class="mh-title">Add Card</div><button class="mh-close" onclick="closeModal('addCardModal')"><i class="ti ti-x"></i></button></div>
+    <div class="fg"><label class="fl">Type</label><div class="tpicker" id="typePicker"></div></div>
+    <div class="fg"><label class="fl">Title</label><input class="fi" id="newCardTitle" placeholder="Card title…"></div>
+    <div class="fg" id="bodyGroup">
+      <label class="fl">Content</label>
+      <div class="rbar">
+        <button class="rbtn" onclick="fmt('bold')" title="Bold"><i class="ti ti-bold"></i></button>
+        <button class="rbtn" onclick="fmt('italic')" title="Italic"><i class="ti ti-italic"></i></button>
+        <button class="rbtn" onclick="fmt('underline')" title="Underline"><i class="ti ti-underline"></i></button>
+        <div class="rsep"></div>
+        <button class="rbtn" onclick="fmt('insertUnorderedList')"><i class="ti ti-list"></i></button>
+        <button class="rbtn" onclick="fmt('insertOrderedList')"><i class="ti ti-list-numbers"></i></button>
+        <div class="rsep"></div>
+        <button class="rbtn"><i class="ti ti-link"></i></button>
+      </div>
+      <div class="reditor" id="newCardBody" contenteditable="true" data-ph="Write something…"></div>
+    </div>
+    <div class="fg"><label class="fl">Tags (comma separated)</label><input class="fi" id="newCardTags" placeholder="e.g. reading, assessment, cpd"></div>
+    <div class="fg"><label class="fl">Card Color</label><div class="cpicker" id="cardCpicker"></div></div>
+    <div class="fg"><label class="fl">Section</label><select class="fi" id="cardSectionSel"></select></div>
+    <div class="modal-actions">
+      <button class="nav-btn" onclick="closeModal('addCardModal')">Cancel</button>
+      <button class="nav-btn nav-btn-primary" onclick="saveCard()"><i class="ti ti-check" style="font-size:13px"></i> Add Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SECTION MODAL -->
+<div class="overlay" id="addSectionModal">
+  <div class="modal" style="width:380px">
+    <div class="mh"><div class="mh-title">Add Section</div><button class="mh-close" onclick="closeModal('addSectionModal')"><i class="ti ti-x"></i></button></div>
+    <div class="fg"><label class="fl">Section Title</label><input class="fi" id="newSecTitle" placeholder="e.g. Teaching & Learning Quality"></div>
+    <div class="fg"><label class="fl">Accent Color</label><div class="cpicker" id="secCpicker"></div></div>
+    <div class="modal-actions">
+      <button class="nav-btn" onclick="closeModal('addSectionModal')">Cancel</button>
+      <button class="nav-btn nav-btn-primary" onclick="saveSection()"><i class="ti ti-plus" style="font-size:13px"></i> Add Section</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="overlay" id="shareModal">
+  <div class="modal" style="width:480px">
+    <div class="mh"><div class="mh-title">Share Board</div><button class="mh-close" onclick="closeModal('shareModal')"><i class="ti ti-x"></i></button></div>
+    <div class="fg">
+      <label class="fl">Share Link</label>
+      <div class="share-row">
+        <input class="fi" type="text" value="https://collabboard.app/b/sr-may-2026" readonly id="shareLink">
+        <button class="nav-btn nav-btn-primary" onclick="copyShareLink()"><i class="ti ti-copy" style="font-size:13px"></i> Copy</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Permission</label>
+      <div class="perm-grid">
+        <div class="popt on" onclick="selPerm(this)"><div class="popt-name">👁 View Only</div><div class="popt-desc">Read access</div></div>
+        <div class="popt" onclick="selPerm(this)"><div class="popt-name">💬 Comment</div><div class="popt-desc">View + comment</div></div>
+        <div class="popt" onclick="selPerm(this)"><div class="popt-name">✏️ Edit</div><div class="popt-desc">Full editing</div></div>
+        <div class="popt" onclick="selPerm(this)"><div class="popt-name">⚡ Admin</div><div class="popt-desc">Full control</div></div>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Visibility</label><select class="fi"><option>Private</option><option>Public</option><option>Team Only</option></select></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" type="password" placeholder="Optional…"></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Invite</label>
+      <div class="share-row"><input class="fi" style="flex:1" placeholder="email@example.com"><button class="nav-btn nav-btn-primary" onclick="toast('Invitation sent!','ok')"><i class="ti ti-send" style="font-size:13px"></i> Invite</button></div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Collaborators</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${['Hamad M. — Admin','Sara K. — Edit','Alex T. — View'].map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;font-size:13px"><span style="color:var(--text)">${p.split(' — ')[0]}</span><span style="color:var(--text3);font-size:12px">${p.split(' — ')[1]}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── AVATARS ──
+const GRADS=[['#7c4dff','#448aff'],['#f06292','#ce93d8'],['#26c6da','#00e676'],['#ff7043','#ffca28'],['#66bb6a','#26c6da']];
+function av(name){let h=0;for(let c of name)h=(h<<5)-h+c.charCodeAt(0);return GRADS[Math.abs(h)%GRADS.length]}
+
+// ── STATE ──
+const COLORS=['#7c4dff','#f44336','#2196f3','#4caf50','#ff9800','#e91e63','#00bcd4','#8bc34a','#ff5722','#607d8b'];
+const SEC_COLORS=['#7c4dff','#f44336','#2196f3','#4caf50','#ff9800','#e91e63','#00bcd4','#9c27b0'];
+const CTYPES=[{id:'note',l:'Note',i:'ti-note'},{id:'image',l:'Image',i:'ti-photo'},{id:'video',l:'Video',i:'ti-video'},{id:'pdf',l:'PDF',i:'ti-file-type-pdf'},{id:'link',l:'Link',i:'ti-link'},{id:'todo',l:'To-do',i:'ti-checkbox'},{id:'code',l:'Code',i:'ti-code'},{id:'table',l:'Table',i:'ti-table'}];
+
+let S={dark:false,sections:[],cardColor:COLORS[0],secColor:SEC_COLORS[0],cardType:'note',ctxCardId:null,ctxSecId:null,search:''};
+
+function init(){
+  const raw=localStorage.getItem('cb_padlet');
+  if(raw){try{Object.assign(S,JSON.parse(raw));}catch(e){}}
+  if(!S.sections.length) seedData();
+}
+
+function seedData(){
+  const authors=[
+    {name:'Shweba',init:'SW',grad:av('SW')},
+    {name:'Heba Sayed',init:'HS',grad:av('HS')},
+    {name:'Finan Abdullah',init:'FA',grad:av('FA')},
+    {name:'Heeba Ismail',init:'HI',grad:av('HI')},
+    {name:'Duraid',init:'DU',grad:av('DU')},
+  ];
+  S.sections=[
+    {id:'sec1',title:'Teaching & Learning Quality',color:'#7c4dff',cards:[
+      {id:'c01',type:'video',title:'English Department: Newspaper',desc:'Video 01:20 — WhatsApp Video 2026-06-08',tags:['english','journalism'],author:authors[0],color:'#7c4dff',time:'2 days ago',likes:4,comments:0},
+      {id:'c02',type:'image',title:'English Department: Notebook Scrutiny',desc:'WhatsApp Video 2026-06-08 at 08:22:35',tags:['english','assessment'],author:authors[0],color:'#2196f3',time:'2 days ago',likes:2,comments:0},
+      {id:'c03',type:'image',title:'English Department: Annual Magazine',desc:'Video 01:17 — WhatsApp Video 2026-06-08',tags:['english','magazine'],author:authors[0],color:'#4caf50',time:'2 days ago',likes:6,comments:0},
+      {id:'c04',type:'image',title:'English Department: Literary Posters',desc:'Storytelling — Done by Ranim and Ritadj. Under the guidance of Teacher Mister Nebras.',tags:['english','art'],author:authors[0],color:'#ff9800',time:'2 days ago',likes:9,comments:0},
+      {id:'c05',type:'video',title:'Lab Based Learning',desc:'WhatsApp Video 2026-06-08 at 7:57:02 AM — Lab Based Learning',tags:['lab','science'],author:authors[1],color:'#e91e63',time:'2 days ago',likes:3,comments:0},
+      {id:'c06',type:'pdf',title:'Arabic b — CPD Certificate',desc:'learning-without-limits-reading-digital-learning-teachers-arabic-all',tags:['arabic','cpd'],author:authors[1],color:'#f44336',time:'2 days ago',likes:1,comments:0},
+      {id:'c07',type:'image',title:'Arabic b',desc:'reading · stories competition',tags:['arabic','reading'],author:authors[2],color:'#00bcd4',time:'2 days ago',likes:5,comments:0},
+      {id:'c08',type:'image',title:'Arabic b — Library Visit',desc:'story summarizing',tags:['arabic','library'],author:authors[2],color:'#8bc34a',time:'2 days ago',likes:2,comments:0},
+      {id:'c09',type:'pdf',title:'Arabic B — Professional Development',desc:'Mr. Abdulraziq — Attending Sea Sessions, Learning without Limits, Digital Teaching',tags:['arabic','pd'],author:authors[2],color:'#9c27b0',time:'2 days ago',likes:4,comments:0},
+      {id:'c10',type:'pdf',title:'Arabic B — Alef Platform',desc:'Alef platform session — Enhancing online learning and designing the best virtual classes',tags:['arabic','edtech'],author:authors[2],color:'#ff5722',time:'2 days ago',likes:7,comments:0},
+    ]},
+    {id:'sec2',title:'Safeguarding & Inclusion',color:'#f44336',cards:[
+      {id:'c11',type:'note',title:'Reviewing the IEP',desc:'Regular IEP reviews ensure that support strategies remain effective and aligned with the student\'s current needs and progress',tags:['iep','sen'],author:authors[3],color:'#7c4dff',time:'2 days ago',likes:3,comments:0},
+      {id:'c12',type:'image',title:'Tracking the progress and IEP Goals',desc:'',tags:['sen','tracking'],author:authors[3],color:'#2196f3',time:'2 days ago',likes:1,comments:0},
+      {id:'c13',type:'image',title:'Tracking SEN students\' progress',desc:'Tracking SEN students\' progress ensures that support is effective and helps them achieve their individual goals.',tags:['sen','progress'],author:authors[3],color:'#4caf50',time:'2 days ago',likes:2,comments:0},
+      {id:'c14',type:'image',title:'SEN students are fully engaged in any school activity',desc:'',tags:['sen','engagement'],author:authors[3],color:'#ff9800',time:'2 days ago',likes:5,comments:0},
+      {id:'c15',type:'image',title:'Honouring SEN students',desc:'Honouring SEN students recognizes their achievements, boosts their self-esteem, and encourages continued participation and success',tags:['sen','celebration'],author:authors[3],color:'#e91e63',time:'2 days ago',likes:8,comments:0},
+      {id:'c16',type:'pdf',title:'Safe Guarding Training',desc:'Certificate of Completion — SHEWIKAR MOHAMED GUMARGHANI',tags:['safeguarding','certificate'],author:authors[4],color:'#f44336',time:'2 days ago',likes:4,comments:0},
+      {id:'c17',type:'pdf',title:'Safe Guarding',desc:'Certificate of Completion — BAYA MOHAMMAD SAED',tags:['safeguarding'],author:authors[4],color:'#607d8b',time:'2 days ago',likes:3,comments:0},
+      {id:'c18',type:'image',title:'Training all school staff and students',desc:'Training all school staff and students for the correct evacuation.',tags:['safety','evacuation'],author:authors[3],color:'#00bcd4',time:'2 days ago',likes:6,comments:0},
+      {id:'c19',type:'note',title:'First aid training for staff and students',desc:'First aid training for both students and staff should be delivered by qualified medical staff to ensure high-quality, consistent, and practical preparedness.',tags:['firstaid','health'],author:authors[3],color:'#9c27b0',time:'2 days ago',likes:9,comments:0},
+      {id:'c20',type:'image',title:'Training Sessions to Support SEN students',desc:'Training Sessions to Support SEN students and students at risk',tags:['sen','training'],author:authors[3],color:'#ff5722',time:'2 days ago',likes:2,comments:0},
+    ]},
+  ];
+}
+
+function save(){try{localStorage.setItem('cb_padlet',JSON.stringify(S));}catch(e){}}
+
+// ── MEDIA PLACEHOLDER ──
+const MEDIA_ICONS={image:'ti-photo',video:'ti-video',pdf:'ti-file-description',link:'ti-link',note:'ti-note',todo:'ti-checkbox',code:'ti-code',table:'ti-table'};
+const MEDIA_COLORS={image:'#e8f0fe',video:'#1a1a1a',pdf:'#fce8e6',link:'#e6f4ea',note:'#fff8e1',todo:'#f3e8ff',code:'#0d1117',table:'#e8f5e9'};
+const MEDIA_FG={image:'#4285f4',video:'#fff',pdf:'#e53935',link:'#34a853',note:'#f9ab00',todo:'#7c4dff',code:'#79c0ff',table:'#34a853'};
+
+function mediaHtml(card){
+  const bg=MEDIA_COLORS[card.type]||'#f0f0f0';
+  const fg=MEDIA_FG[card.type]||'#999';
+  const ic=MEDIA_ICONS[card.type]||'ti-file';
+  let extra='';
+  if(card.type==='video')extra=`<div class="card-media-icon"><i class="ti ti-player-play" style="font-size:10px"></i> ${card.videoLen||'00:45'}</div>`;
+  if(card.type==='pdf')extra=`<div class="card-media-pdf">PDF</div>`;
+  return `<div class="card-media" style="background:${bg}">`
+    +`<i class="ti ${ic} card-media-placeholder" style="color:${fg};font-size:38px"></i>`
+    +extra+`</div>`;
+}
+
+// ── RENDER ──
+function render(){
+  const container=document.getElementById('sectionsContainer');
+  const q=S.search.toLowerCase();
+  container.innerHTML='';
+  S.sections.forEach(sec=>{
+    const cards=q?sec.cards.filter(c=>c.title.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q)||(c.tags||[]).some(t=>t.toLowerCase().includes(q))):sec.cards;
+    const wrap=document.createElement('div');
+    wrap.className='section-wrap';
+    wrap.innerHTML=`
+      <div class="section-header">
+        <div class="section-title">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${sec.color};flex-shrink:0"></span>
+          ${sec.title}
+          <span class="section-count">${cards.length}</span>
+        </div>
+        <div class="section-actions">
+          <button class="sec-icon-btn" onclick="editSection('${sec.id}')" title="Rename"><i class="ti ti-pencil"></i></button>
+          <button class="sec-icon-btn" onclick="deleteSection('${sec.id}')" title="Delete section"><i class="ti ti-trash"></i></button>
+        </div>
+        <div class="section-spacer"></div>
+        <button class="sec-add-btn" onclick="openAddCardModal('${sec.id}')"><i class="ti ti-plus" style="font-size:13px"></i> Add card</button>
+      </div>
+      <div class="card-row" id="row-${sec.id}">
+        ${cards.map(c=>cardHtml(c,sec.id)).join('')}
+        <div class="card-add" onclick="openAddCardModal('${sec.id}')">
+          <i class="ti ti-plus"></i><span>Add card</span>
+        </div>
+      </div>`;
+    container.appendChild(wrap);
+  });
+  // bind card menu buttons
+  document.querySelectorAll('.card-menu').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();showCtx(e,btn.dataset.cardId,btn.dataset.secId);});
+  });
+  // bind like buttons
+  document.querySelectorAll('.like-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();likeCard(btn.dataset.cardId,btn.dataset.secId);});
+  });
+}
+
+function cardHtml(card,secId){
+  const tagsHtml=(card.tags||[]).slice(0,3).map(t=>`<span class="card-tag">${t}</span>`).join('');
+  const g=av(card.author.init);
+  return `<div class="card" data-id="${card.id}" data-sec="${secId}">
+    ${mediaHtml(card)}
+    <div class="card-body">
+      <div class="card-author-row">
+        <div class="card-avatar" style="background:linear-gradient(135deg,${g[0]},${g[1]})">${card.author.init}</div>
+        <span class="card-author-name">${card.author.name}</span>
+        <span class="card-author-time">${card.time}</span>
+      </div>
+      <div class="card-title">${card.title}</div>
+      ${card.desc?`<div class="card-desc">${card.desc}</div>`:''}
+      ${tagsHtml?`<div class="card-tags">${tagsHtml}</div>`:''}
+    </div>
+    <div class="card-footer">
+      <div class="card-footer-left">
+        <span class="card-stat like-btn" data-card-id="${card.id}" data-sec-id="${secId}">
+          <i class="ti ti-heart"></i> ${card.likes||0}
+        </span>
+        <span class="card-stat">
+          <i class="ti ti-message-circle"></i> ${card.comments||0}
+        </span>
+      </div>
+      <button class="card-menu" data-card-id="${card.id}" data-sec-id="${secId}"><i class="ti ti-dots-vertical"></i></button>
+    </div>
+    <div style="height:3px;background:${card.color};flex-shrink:0;margin-top:-1px"></div>
+  </div>`;
+}
+
+// ── SEARCH ──
+function handleSearch(v){S.search=v;render();}
+
+// ── LIKE ──
+function likeCard(cardId,secId){
+  const sec=S.sections.find(s=>s.id===secId);
+  if(!sec)return;
+  const card=sec.cards.find(c=>c.id===cardId);
+  if(card){card.likes=(card.likes||0)+1;save();render();}
+}
+
+// ── CTX MENU ──
+let ctxMeta={cardId:null,secId:null};
+function showCtx(e,cardId,secId){
+  ctxMeta={cardId,secId};
+  const menu=document.getElementById('ctxMenu');
+  menu.style.top=e.clientY+'px';
+  menu.style.left=Math.min(e.clientX,window.innerWidth-160)+'px';
+  menu.classList.add('show');
+  e.stopPropagation();
+}
+function ctxAction(action){
+  document.getElementById('ctxMenu').classList.remove('show');
+  const sec=S.sections.find(s=>s.id===ctxMeta.secId);
+  if(!sec)return;
+  if(action==='del'){
+    sec.cards=sec.cards.filter(c=>c.id!==ctxMeta.cardId);
+    save();render();toast('Card deleted');
+  } else if(action==='dup'){
+    const orig=sec.cards.find(c=>c.id===ctxMeta.cardId);
+    if(orig)sec.cards.push({...orig,id:'c'+Date.now(),title:orig.title+' (copy)',time:'just now'});
+    save();render();toast('Duplicated','ok');
+  } else if(action==='edit'){
+    toast('Edit mode coming soon…');
+  } else if(action==='move'){
+    toast('Move feature coming soon…');
+  }
+}
+document.addEventListener('click',()=>document.getElementById('ctxMenu').classList.remove('show'));
+
+// ── ADD CARD MODAL ──
+let targetSecId=null;
+function openAddCardModal(secId){
+  targetSecId=secId||S.sections[0]?.id;
+  // type picker
+  const tp=document.getElementById('typePicker');
+  tp.innerHTML=CTYPES.map(t=>`<div class="topt${S.cardType===t.id?' on':''}" onclick="selType(this,'${t.id}')"><i class="ti ${t.i}"></i><span>${t.l}</span></div>`).join('');
+  // color picker
+  initCpicker('cardCpicker','cardColor');
+  // section selector
+  const sel=document.getElementById('cardSectionSel');
+  sel.innerHTML=S.sections.map(s=>`<option value="${s.id}"${s.id===targetSecId?' selected':''}>${s.title}</option>`).join('');
+  document.getElementById('newCardTitle').value='';
+  document.getElementById('newCardBody').innerHTML='';
+  document.getElementById('newCardTags').value='';
+  openModal('addCardModal');
+}
+function selType(el,id){
+  document.querySelectorAll('#typePicker .topt').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');S.cardType=id;
+}
+function saveCard(){
+  const secId=document.getElementById('cardSectionSel').value;
+  const sec=S.sections.find(s=>s.id===secId);
+  if(!sec)return;
+  const title=document.getElementById('newCardTitle').value.trim()||'Untitled';
+  const desc=document.getElementById('newCardBody').innerText.trim();
+  const tags=document.getElementById('newCardTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  sec.cards.push({id:'c'+Date.now(),type:S.cardType,title,desc,tags,author:{name:'Hamad M.',init:'HM',grad:av('HM')},color:S.cardColor,time:'just now',likes:0,comments:0});
+  closeModal('addCardModal');save();render();toast('Card added!','ok');
+}
+
+// ── ADD SECTION MODAL ──
+function openAddSectionModal(){
+  initCpicker('secCpicker','secColor');
+  document.getElementById('newSecTitle').value='';
+  openModal('addSectionModal');
+}
+function saveSection(){
+  const title=document.getElementById('newSecTitle').value.trim();
+  if(!title){toast('Please enter a title');return;}
+  S.sections.push({id:'sec'+Date.now(),title,color:S.secColor,cards:[]});
+  closeModal('addSectionModal');save();render();toast('Section added!','ok');
+}
+function editSection(id){
+  const sec=S.sections.find(s=>s.id===id);
+  if(!sec)return;
+  const name=prompt('Rename section:',sec.title);
+  if(name&&name.trim()){sec.title=name.trim();save();render();}
+}
+function deleteSection(id){
+  if(!confirm('Delete this section and all its cards?'))return;
+  S.sections=S.sections.filter(s=>s.id!==id);
+  save();render();toast('Section deleted');
+}
+
+// ── SHARE ──
+function openShareModal(){openModal('shareModal');}
+function copyShareLink(){
+  navigator.clipboard.writeText(document.getElementById('shareLink').value).catch(()=>{});
+  toast('Link copied!','ok');
+}
+function selPerm(el){
+  el.closest('.perm-grid').querySelectorAll('.popt').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ── COLOR PICKER ──
+function initCpicker(id,key){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const arr=key==='secColor'?SEC_COLORS:COLORS;
+  el.innerHTML='';
+  arr.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='cdot'+(S[key]===c?' on':'');
+    d.style.background=c;d.style.color=c;
+    d.onclick=()=>{el.querySelectorAll('.cdot').forEach(x=>x.classList.remove('on'));d.classList.add('on');S[key]=c;};
+    el.appendChild(d);
+  });
+}
+
+// ── DARK MODE ──
+function toggleDark(){
+  S.dark=!S.dark;
+  document.body.toggleAttribute('data-dark',S.dark);
+  document.getElementById('themeBtn').innerHTML=`<i class="ti ti-${S.dark?'sun':'moon'}"></i>`;
+  save();
+}
+
+// ── MODAL HELPERS ──
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+});
+
+// ── TOAST ──
+function toast(msg,type=''){
+  const w=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className='toast'+(type?' '+type:'');
+  t.innerHTML=`<i class="ti ti-${type==='ok'?'check':'info-circle'}" style="font-size:14px"></i> ${msg}`;
+  w.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},2200);
+}
+
+// ── RICH EDITOR ──
+function fmt(cmd){document.execCommand(cmd,false,null);}
+
+// ── SIMULATE LIVE ──
+function simLive(){
+  const msgs=['Sara K. added a card','Alex T. is viewing','New card from Heeba Ismail'];
+  setInterval(()=>{
+    if(document.visibilityState==='visible'&&Math.random()>.72)
+      toast('🔴 Live: '+msgs[Math.floor(Math.random()*msgs.length)]);
+  },20000);
+}
+
+// ── BOOT ──
+init();
+if(S.dark){document.body.setAttribute('data-dark','');document.getElementById('themeBtn').innerHTML='<i class="ti ti-sun"></i>';}
+render();
+simLive();
+</script>
+</body>
+</html>
