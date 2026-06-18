@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CollabBoard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-header">
+    <div class="logo"><div class="logo-icon"><i class="ti ti-layout-board"></i></div>CollabBoard</div>
+    <div class="sb-search"><i class="ti ti-search"></i><input type="text" placeholder="Search boards…" oninput="sbSearch(this.value)"></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-label">My Boards</div>
+    <div id="boardList"></div>
+    <div class="sb-new-board" onclick="openNewBoardModal()"><i class="ti ti-plus" style="font-size:15px"></i> New Board</div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="avatar">U</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">My Workspace</div>
+        <div style="font-size:11px;color:var(--text3)">Owner</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <button class="tb-toggle" onclick="toggleSidebar()"><i class="ti ti-layout-sidebar"></i></button>
+    <div class="tb-breadcrumb">
+      <span style="color:var(--text3)">Boards</span>
+      <i class="ti ti-chevron-right" style="font-size:11px"></i>
+      <span class="tb-board-name" id="tbBoardName" ondblclick="focusBoardTitle()">—</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="presence"><div class="pav" style="background:linear-gradient(135deg,#7c4dff,#448aff)">U</div></div>
+    <div class="live-dot" title="Auto-saved to device"></div>
+    <button class="tb-icon-btn" onclick="openShareModal()" title="Share"><i class="ti ti-share"></i></button>
+    <button class="tb-icon-btn" onclick="toggleDark()" id="themeBtn" title="Toggle theme"><i class="ti ti-moon"></i></button>
+    <button class="tb-btn tb-btn-primary" onclick="openAddSectionModal()"><i class="ti ti-plus" style="font-size:13px"></i> Add Section</button>
+  </div>
+
+  <div class="board-canvas" id="boardCanvas">
+    <div class="empty-board" id="emptyState">
+      <i class="ti ti-layout-board-split"></i>
+      <h2>No boards yet</h2>
+      <p>Create your first board to get started</p>
+      <button class="tb-btn tb-btn-primary" onclick="openNewBoardModal()"><i class="ti ti-plus" style="font-size:13px"></i> Create Board</button>
+    </div>
+    <div id="boardView" style="display:none">
+      <div class="board-title-bar">
+        <input class="board-title-input" id="boardTitleInput" placeholder="Board title…" oninput="updateBoardTitle(this.value)">
+      </div>
+      <div class="board-meta" id="boardMeta"></div>
+      <div class="sections-wrap" id="sectionsWrap"></div>
+      <div class="add-sec-row">
+        <button class="add-sec-btn" onclick="openAddSectionModal()"><i class="ti ti-plus"></i> Add Section</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx" id="ctxMenu">
+  <button class="ctx-item" onclick="ctxAct('edit')"><i class="ti ti-edit" style="font-size:13px"></i> Edit</button>
+  <button class="ctx-item" onclick="ctxAct('dup')"><i class="ti ti-copy" style="font-size:13px"></i> Duplicate</button>
+  <div class="ctx-sep"></div>
+  <button class="ctx-item danger" onclick="ctxAct('del')"><i class="ti ti-trash" style="font-size:13px"></i> Delete</button>
+</div>
+
+<!-- ══ PREVIEW MODAL ══ -->
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-box">
+    <div class="preview-head">
+      <div class="preview-head-title" id="previewTitle">Untitled</div>
+      <div class="preview-head-meta" id="previewMeta"></div>
+      <button class="mh-close" onclick="closePreview()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+    <div class="preview-footer">
+      <div class="preview-footer-left" id="previewFooterMeta"><i class="ti ti-paperclip"></i> <span id="previewFileInfo">—</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="tb-btn" onclick="openEditFromPreview()"><i class="ti ti-edit" style="font-size:13px"></i> Edit</button>
+        <button class="tb-btn tb-btn-primary" id="previewDownloadBtn" onclick="downloadCurrentPreview()"><i class="ti ti-download" style="font-size:13px"></i> Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD CARD MODAL ══ -->
+<div class="overlay" id="addCardModal">
+<div class="modal">
+  <div class="mh"><div class="mh-title">Add Card</div><button class="mh-close" onclick="closeModal('addCardModal')"><i class="ti ti-x"></i></button></div>
+
+  <div class="fg">
+    <label class="fl">Content Type</label>
+    <div class="type-tabs" id="typeTabs">
+      <button class="type-tab on" data-type="note" onclick="selType(this)"><i class="ti ti-note"></i> Note</button>
+      <button class="type-tab" data-type="image" onclick="selType(this)"><i class="ti ti-photo"></i> Image</button>
+      <button class="type-tab" data-type="video" onclick="selType(this)"><i class="ti ti-video"></i> Video</button>
+      <button class="type-tab" data-type="pdf" onclick="selType(this)"><i class="ti ti-file-type-pdf"></i> PDF / Doc</button>
+      <button class="type-tab" data-type="link" onclick="selType(this)"><i class="ti ti-link"></i> Link</button>
+      <button class="type-tab" data-type="todo" onclick="selType(this)"><i class="ti ti-checkbox"></i> To-do</button>
+    </div>
+  </div>
+
+  <!-- UPLOAD ZONE -->
+  <div class="fg" id="uploadGroup" style="display:none">
+    <label class="fl">Upload File</label>
+    <div class="storage-info"><i class="ti ti-database"></i><span id="storageInfoText">Files stored locally on your device using IndexedDB — no size limit imposed by this app</span></div>
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" onchange="handleFile(this)">
+      <i class="ti ti-cloud-upload uz-icon"></i>
+      <div class="uz-title">Click to upload or drag & drop</div>
+      <div class="uz-sub" id="uploadHint">Select a file from your device</div>
+      <span class="uz-limit" id="uploadLimit">No app-imposed size limit</span>
+    </div>
+    <div id="filePreviewWrap" style="display:none"></div>
+    <div id="progressWrap" style="display:none" class="progress-wrap">
+      <div class="progress-label"><span id="progressLabel">Reading file…</span><span id="progressPct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- LINK -->
+  <div class="fg" id="linkGroup" style="display:none">
+    <label class="fl">URL</label>
+    <input class="fi" id="cardLink" placeholder="https://example.com" type="url">
+  </div>
+
+  <!-- TITLE -->
+  <div class="fg">
+    <label class="fl">Title</label>
+    <input class="fi" id="cardTitle" placeholder="Card title…">
+  </div>
+
+  <!-- BODY -->
+  <div class="fg" id="bodyGroup">
+    <label class="fl">Content</label>
+    <div class="rbar">
+      <button class="rbtn" onclick="fmt('bold')"><i class="ti ti-bold"></i></button>
+      <button class="rbtn" onclick="fmt('italic')"><i class="ti ti-italic"></i></button>
+      <button class="rbtn" onclick="fmt('underline')"><i class="ti ti-underline"></i></button>
+      <div class="rsep"></div>
+      <button class="rbtn" onclick="fmt('insertUnorderedList')"><i class="ti ti-list"></i></button>
+      <button class="rbtn" onclick="fmt('insertOrderedList')"><i class="ti ti-list-numbers"></i></button>
+    </div>
+    <div class="reditor" id="cardBody" contenteditable="true" data-ph="Write something…"></div>
+  </div>
+
+  <div class="frow">
+    <div class="fg"><label class="fl">Tags</label><input class="fi" id="cardTags" placeholder="tag1, tag2…"></div>
+    <div class="fg"><label class="fl">Card Color</label><div class="cpicker" id="cardCpicker"></div></div>
+  </div>
+  <div class="fg"><label class="fl">Section</label><select class="fi" id="cardSecSel"></select></div>
+
+  <div class="modal-actions">
+    <button class="tb-btn" onclick="closeModal('addCardModal')">Cancel</button>
+    <button class="tb-btn tb-btn-primary" id="addCardBtn" onclick="saveCard()"><i class="ti ti-check" style="font-size:13px"></i> Add Card</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ EDIT CARD MODAL ══ -->
+<div class="overlay" id="editCardModal">
+<div class="modal">
+  <div class="mh"><div class="mh-title">Edit Card</div><button class="mh-close" onclick="closeModal('editCardModal')"><i class="ti ti-x"></i></button></div>
+  <div class="fg"><label class="fl">Title</label><input class="fi" id="editTitle"></div>
+  <div class="fg">
+    <label class="fl">Content</label>
+    <div class="rbar">
+      <button class="rbtn" onclick="document.execCommand('bold')"><i class="ti ti-bold"></i></button>
+      <button class="rbtn" onclick="document.execCommand('italic')"><i class="ti ti-italic"></i></button>
+    </div>
+    <div class="reditor" id="editBody" contenteditable="true" data-ph="Content…"></div>
+  </div>
+  <div class="fg"><label class="fl">Tags</label><input class="fi" id="editTags"></div>
+  <div class="fg"><label class="fl">Card Color</label><div class="cpicker" id="editCpicker"></div></div>
+  <div class="modal-actions">
+    <button class="tb-btn" onclick="closeModal('editCardModal')">Cancel</button>
+    <button class="tb-btn tb-btn-primary" onclick="saveEdit()"><i class="ti ti-check" style="font-size:13px"></i> Save</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ NEW BOARD MODAL ══ -->
+<div class="overlay" id="newBoardModal">
+<div class="modal modal-sm">
+  <div class="mh"><div class="mh-title">New Board</div><button class="mh-close" onclick="closeModal('newBoardModal')"><i class="ti ti-x"></i></button></div>
+  <div class="fg"><label class="fl">Board Name</label><input class="fi" id="newBoardName" placeholder="e.g. Status Report — May"></div>
+  <div class="fg"><label class="fl">Description (optional)</label><input class="fi" id="newBoardDesc" placeholder="What's this board for?"></div>
+  <div class="modal-actions">
+    <button class="tb-btn" onclick="closeModal('newBoardModal')">Cancel</button>
+    <button class="tb-btn tb-btn-primary" onclick="createBoard()"><i class="ti ti-plus" style="font-size:13px"></i> Create</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ ADD SECTION MODAL ══ -->
+<div class="overlay" id="addSectionModal">
+<div class="modal modal-sm">
+  <div class="mh"><div class="mh-title">Add Section</div><button class="mh-close" onclick="closeModal('addSectionModal')"><i class="ti ti-x"></i></button></div>
+  <div class="fg"><label class="fl">Section Title</label><input class="fi" id="newSecTitle" placeholder="e.g. Teaching & Learning Quality"></div>
+  <div class="fg"><label class="fl">Accent Color</label><div class="cpicker" id="secCpicker"></div></div>
+  <div class="modal-actions">
+    <button class="tb-btn" onclick="closeModal('addSectionModal')">Cancel</button>
+    <button class="tb-btn tb-btn-primary" onclick="saveSection()"><i class="ti ti-plus" style="font-size:13px"></i> Add</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ SHARE MODAL ══ -->
+<div class="overlay" id="shareModal">
+<div class="modal">
+  <div class="mh"><div class="mh-title">Share Board</div><button class="mh-close" onclick="closeModal('shareModal')"><i class="ti ti-x"></i></button></div>
+  <div class="fg">
+    <label class="fl">Share Link</label>
+    <div class="share-row">
+      <input class="fi" type="text" id="shareLink" readonly>
+      <button class="tb-btn tb-btn-primary" onclick="copyLink()"><i class="ti ti-copy" style="font-size:13px"></i> Copy</button>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="fl">Permission</label>
+    <div class="perm-grid">
+      <div class="popt on" onclick="selPerm(this)"><div class="popt-name">👁 View Only</div><div class="popt-desc">Read access</div></div>
+      <div class="popt" onclick="selPerm(this)"><div class="popt-name">💬 Comment</div><div class="popt-desc">View + comment</div></div>
+      <div class="popt" onclick="selPerm(this)"><div class="popt-name">✏️ Edit</div><div class="popt-desc">Full editing</div></div>
+      <div class="popt" onclick="selPerm(this)"><div class="popt-name">⚡ Admin</div><div class="popt-desc">Full control</div></div>
+    </div>
+  </div>
+  <div class="frow">
+    <div class="fg"><label class="fl">Visibility</label><select class="fi"><option>Private</option><option>Public</option><option>Team Only</option></select></div>
+    <div class="fg"><label class="fl">Password</label><input class="fi" type="password" placeholder="Optional…"></div>
+  </div>
+  <div class="fg">
+    <label class="fl">Invite by email</label>
+    <div class="share-row"><input class="fi" style="flex:1" placeholder="email@example.com"><button class="tb-btn tb-btn-primary" onclick="toast('Invitation sent!','ok')"><i class="ti ti-send" style="font-size:13px"></i> Invite</button></div>
+  </div>
+</div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
